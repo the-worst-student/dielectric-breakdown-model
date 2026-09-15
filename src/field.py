@@ -40,8 +40,8 @@ class ElectricField:
         self.phi[-1, :] = self.config.voltage
         self.phi[self.channel] = 0.0
 
-    def solve_laplace(self):
-        error = np.inf
+    def solve_laplace_jacobi_residual(self):
+        check_interval = self.config.residual_check_interval
 
         for iteration in range(self.config.max_iterations):
             old_phi = self.phi.copy()
@@ -55,14 +55,15 @@ class ElectricField:
 
             self.apply_boundary_conditions()
 
-            error = np.max(
-                np.abs(self.phi - old_phi)
-            )
+            if (iteration + 1) % check_interval == 0:
+                residual = self.laplace_residual()
 
-            if error < self.config.tolerance:
-                return iteration + 1, error
+                if residual < self.config.tolerance:
+                    return iteration + 1, residual
 
-        return self.config.max_iterations, error
+        residual = self.laplace_residual()
+
+        return self.config.max_iterations, residual
 
     def electric_field(self):
         dphi_dy, dphi_dx = np.gradient(self.phi)
@@ -72,3 +73,95 @@ class ElectricField:
             Ex ** 2 + Ey ** 2
         )
         return Ex, Ey, E
+
+    def laplace_residual(self):
+        center = self.phi[1:-1, 1:-1]
+
+        neighbor_sum = (
+                self.phi[2:, 1:-1]
+                + self.phi[:-2, 1:-1]
+                + self.phi[1:-1, 2:]
+                + self.phi[1:-1, :-2]
+        )
+
+        residual = (
+                neighbor_sum
+                - 4.0 * center
+        )
+
+        free = ~self.channel[1:-1, 1:-1]
+
+        if not np.any(free):
+            return 0.0
+
+        return np.max(
+            np.abs(residual[free])
+        )
+
+    def solve_laplace_sor(self):
+        omega = self.config.omega
+        tolerance = self.config.tolerance
+        max_iterations = self.config.max_iterations
+        check_interval = self.config.residual_check_interval
+
+        ny = self.config.ny
+        nx = self.config.nx
+
+        self.apply_boundary_conditions()
+        yy, xx = np.indices((ny, nx))
+
+        red = ((xx + yy) % 2 == 0)[1:-1, 1:-1]
+        black = ~red
+
+        for iteration in range(max_iterations):
+            free = ~self.channel[1:-1, 1:-1]
+            center = self.phi[1:-1, 1:-1]
+
+            neighbor_avg = 0.25 * (
+                    self.phi[2:, 1:-1]
+                    + self.phi[:-2, 1:-1]
+                    + self.phi[1:-1, 2:]
+                    + self.phi[1:-1, :-2]
+            )
+
+            red_free = red & free
+
+            center[red_free] = (
+                    center[red_free]
+                    + omega * (
+                            neighbor_avg[red_free]
+                            - center[red_free]
+                    )
+            )
+
+            self.apply_boundary_conditions()
+            center = self.phi[1:-1, 1:-1]
+
+            neighbor_avg = 0.25 * (
+                    self.phi[2:, 1:-1]
+                    + self.phi[:-2, 1:-1]
+                    + self.phi[1:-1, 2:]
+                    + self.phi[1:-1, :-2]
+            )
+
+            black_free = black & free
+
+            center[black_free] = (
+                    center[black_free]
+                    + omega * (
+                            neighbor_avg[black_free]
+                            - center[black_free]
+                    )
+            )
+
+            self.apply_boundary_conditions()
+
+            if (iteration + 1) % check_interval == 0:
+                residual = self.laplace_residual()
+
+                if residual < tolerance:
+                    return iteration + 1, residual
+
+        residual = self.laplace_residual()
+
+        return max_iterations, residual

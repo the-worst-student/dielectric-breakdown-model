@@ -27,7 +27,7 @@ def choose_growth_cell(candidates, probabilities, rng):
 
 def growth_step(field, eta, rng):
     field.apply_boundary_conditions()
-    field.solve_laplace()
+    field.solve_laplace_sor()
     Ex, Ey, E = field.electric_field()
     front = get_front(field.channel)
     candidates = np.argwhere(front)

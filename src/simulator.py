@@ -1,6 +1,4 @@
 import numpy as np
-from IPython.core import history
-
 from .field import ElectricField
 from .growth import growth_step, reached_top_electrode
 

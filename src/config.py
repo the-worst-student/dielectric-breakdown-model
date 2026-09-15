@@ -12,3 +12,5 @@ class SimulationConfig:
     max_steps: int = 5000
     random_seed: int = 42
     eta: float = 1.0
+    omega: float = 1.96
+    residual_check_interval: int = 10
