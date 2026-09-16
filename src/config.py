@@ -14,3 +14,6 @@ class SimulationConfig:
     eta: float = 1.0
     omega: float = 1.96
     residual_check_interval: int = 10
+    correlation_length: int = 10
+    weibull_shape: float = 5.0
+    disorder_seed: int = 123

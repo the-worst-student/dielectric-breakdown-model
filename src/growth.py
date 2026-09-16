@@ -13,9 +13,18 @@ def get_front(channel):
 
     return front
 
-def get_growth_probabilities(E, front, eta):
+def get_growth_probabilities(
+    E,
+    strength,
+    front,
+    eta,
+):
     field_values = E[front]
-    weights = field_values ** eta
+    strength_values = strength[front]
+
+    driving = field_values / strength_values
+
+    weights = driving ** eta
     probabilities = weights / np.sum(weights)
 
     return probabilities
@@ -25,7 +34,7 @@ def choose_growth_cell(candidates, probabilities, rng):
 
     return candidates[index]
 
-def growth_step(field, eta, rng):
+def growth_step(field, strength, eta, rng):
     field.apply_boundary_conditions()
     field.solve_laplace_sor()
     Ex, Ey, E = field.electric_field()
@@ -35,8 +44,9 @@ def growth_step(field, eta, rng):
         return None
     probabilities = get_growth_probabilities(
         E,
+        strength,
         front,
-        eta
+        eta,
     )
     next_cell = choose_growth_cell(
         candidates,
