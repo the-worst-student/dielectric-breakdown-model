@@ -66,12 +66,20 @@ class ElectricField:
         return self.config.max_iterations, residual
 
     def electric_field(self):
-        dphi_dy, dphi_dx = np.gradient(self.phi)
+        dx = self.config.lx / (self.config.nx - 1)
+        dy = self.config.ly / (self.config.ny - 1)
+
+        dphi_dy, dphi_dx = np.gradient(
+            self.phi,
+            dy,
+            dx,
+        )
+
         Ex = -dphi_dx
         Ey = -dphi_dy
-        E = np.sqrt(
-            Ex ** 2 + Ey ** 2
-        )
+
+        E = np.sqrt(Ex ** 2 + Ey ** 2)
+
         return Ex, Ey, E
 
     def laplace_residual(self):

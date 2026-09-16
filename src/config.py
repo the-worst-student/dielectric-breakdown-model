@@ -6,7 +6,9 @@ class SimulationConfig:
     ny: int = 128
 
     voltage: float = 1.0
-
+    lx: float = 1.0
+    ly: float = 1.0
+    mean_breakdown_field: float = 0.7
     tolerance: float = 1e-5
     max_iterations: int = 50_000
     max_steps: int = 5000

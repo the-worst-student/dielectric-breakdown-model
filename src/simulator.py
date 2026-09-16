@@ -21,10 +21,11 @@ def run_simulation(config):
             field,
             strength,
             config.eta,
+            config.mean_breakdown_field,
             rng,
         )
         if cell is None:
-            return history, field, False
+            return field, history, False
         history.append(
             tuple(map(int, cell))
         )

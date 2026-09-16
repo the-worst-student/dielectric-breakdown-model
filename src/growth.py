@@ -18,13 +18,26 @@ def get_growth_probabilities(
     strength,
     front,
     eta,
+    mean_breakdown_field,
 ):
     field_values = E[front]
     strength_values = strength[front]
 
-    driving = field_values / strength_values
+    threshold_values = (
+        mean_breakdown_field
+        * strength_values
+    )
+
+    driving = np.maximum(
+        field_values / threshold_values - 1.0,
+        0.0,
+    )
 
     weights = driving ** eta
+
+    if np.sum(weights) == 0:
+        return None
+
     probabilities = weights / np.sum(weights)
 
     return probabilities
@@ -34,7 +47,7 @@ def choose_growth_cell(candidates, probabilities, rng):
 
     return candidates[index]
 
-def growth_step(field, strength, eta, rng):
+def growth_step(field, strength, eta, mean_breakdown_field, rng):
     field.apply_boundary_conditions()
     field.solve_laplace_sor()
     Ex, Ey, E = field.electric_field()
@@ -47,7 +60,12 @@ def growth_step(field, strength, eta, rng):
         strength,
         front,
         eta,
+        mean_breakdown_field
     )
+
+    if probabilities is None:
+        return None
+
     next_cell = choose_growth_cell(
         candidates,
         probabilities,
