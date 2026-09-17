@@ -20,13 +20,30 @@ class ElectricField:
 
         self.channel = np.zeros(
             (config.ny, config.nx),
+            dtype=bool,
+        )
+
+        self.needle = np.zeros(
+            (config.ny, config.nx),
             dtype=bool
         )
 
-        seed_x = config.nx // 2
-        seed_y = 0
+        dx = config.lx / (config.nx - 1)
+        dy = config.ly / (config.ny - 1)
+        needle_length_cells = max(1, int(round(config.needle_length / dy)))
+        needle_width_cells = max(1, int(round(config.needle_width / dx)))
 
-        self.channel[seed_y, seed_x] = True
+        x_center = config.nx // 2
+        half_width = needle_width_cells // 2
+        x_start = x_center - half_width
+        x_end = x_center + half_width + 1
+        self.needle[0:needle_length_cells + 1, x_start:x_end] = True
+
+
+        # seed_x = config.nx // 2
+        # seed_y = 0
+        #
+        # self.channel[seed_y, seed_x] = True
 
         self.apply_boundary_conditions()
     def apply_boundary_conditions(self):
@@ -39,6 +56,7 @@ class ElectricField:
         self.phi[0, :] = 0.0
         self.phi[-1, :] = self.config.voltage
         self.phi[self.channel] = 0.0
+        self.phi[self.needle] = 0.0
 
     def solve_laplace_jacobi_residual(self):
         check_interval = self.config.residual_check_interval
@@ -97,7 +115,8 @@ class ElectricField:
                 - 4.0 * center
         )
 
-        free = ~self.channel[1:-1, 1:-1]
+        conductor = self.channel | self.needle
+        free = ~conductor[1:-1, 1:-1]
 
         if not np.any(free):
             return 0.0
@@ -122,7 +141,8 @@ class ElectricField:
         black = ~red
 
         for iteration in range(max_iterations):
-            free = ~self.channel[1:-1, 1:-1]
+            conductor = self.channel | self.needle
+            free = ~conductor[1:-1, 1:-1]
             center = self.phi[1:-1, 1:-1]
 
             neighbor_avg = 0.25 * (

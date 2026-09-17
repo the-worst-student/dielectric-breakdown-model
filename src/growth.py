@@ -51,7 +51,8 @@ def growth_step(field, strength, eta, mean_breakdown_field, rng):
     field.apply_boundary_conditions()
     field.solve_laplace_sor()
     Ex, Ey, E = field.electric_field()
-    front = get_front(field.channel)
+    conductor = field.needle | field.channel
+    front = get_front(conductor)
     candidates = np.argwhere(front)
     if len(candidates) == 0:
         return None

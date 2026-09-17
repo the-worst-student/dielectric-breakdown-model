@@ -19,3 +19,5 @@ class SimulationConfig:
     correlation_length: int = 10
     weibull_shape: float = 5.0
     disorder_seed: int = 123
+    needle_length: int = 0.1
+    needle_width: float = 0.02
