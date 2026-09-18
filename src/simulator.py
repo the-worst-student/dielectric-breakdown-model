@@ -7,6 +7,7 @@ from .disorder import generate_breakdown_strength
 
 def run_simulation(config):
     field = ElectricField(config)
+
     strength = generate_breakdown_strength(
         ny=config.ny,
         nx=config.nx,
@@ -14,9 +15,11 @@ def run_simulation(config):
         weibull_shape=config.weibull_shape,
         seed=config.disorder_seed,
     )
-    rng = np.random.default_rng(seed=config.random_seed)
+
+    rng = np.random.default_rng(config.random_seed)
     history = []
-    for step in range(config.max_iterations):
+
+    for step in range(config.max_growth_steps):
         cell = growth_step(
             field,
             strength,
@@ -24,11 +27,25 @@ def run_simulation(config):
             config.mean_breakdown_field,
             rng,
         )
+
         if cell is None:
-            return field, history, False
-        history.append(
-            tuple(map(int, cell))
-        )
+            return {
+                "status": "arrested",
+                "steps": len(history),
+                "max_y": max([p[0] for p in history], default=None),
+            }
+
+        history.append(tuple(map(int, cell)))
+
         if reached_top_electrode(field.channel):
-            return field, history, True
-    return field, history, False
+            return {
+                "status": "breakdown",
+                "steps": len(history),
+                "max_y": max([p[0] for p in history], default=None),
+            }
+
+    return {
+        "status": "max_steps",
+        "steps": len(history),
+        "max_y": max([p[0] for p in history], default=None),
+    }
