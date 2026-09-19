@@ -49,7 +49,7 @@ def choose_growth_cell(candidates, probabilities, rng):
 
 def growth_step(field, strength, eta, mean_breakdown_field, rng):
     field.apply_boundary_conditions()
-    field.solve_laplace_sor()
+    field.solve_laplace_sor_numba()
     Ex, Ey, E = field.electric_field()
     conductor = field.needle | field.channel
     front = get_front(conductor)

@@ -1,6 +1,7 @@
 import numpy as np
 
 from .config import SimulationConfig
+from src.solver_numba import solve_laplace_sor_numba as solve_laplace_sor_numba_kernel
 
 class ElectricField:
     def __init__(self, config: SimulationConfig):
@@ -193,3 +194,9 @@ class ElectricField:
         residual = self.laplace_residual()
 
         return max_iterations, residual
+
+    def solve_laplace_sor_numba(self):
+        conductor = self.channel | self.needle
+        return solve_laplace_sor_numba_kernel(self.phi, conductor, self.config.voltage, self.config.omega,
+                                              self.config.tolerance, self.config.max_iterations,
+                                              self.config.residual_check_interval)

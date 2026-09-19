@@ -10,7 +10,7 @@ class SimulationConfig:
     ly: float = 1.0
     mean_breakdown_field: float = 0.7
     tolerance: float = 1e-5
-    max_solver_iterations: int = 50_000
+    max_iterations: int = 50_000
     max_growth_steps: int = 5000
     random_seed: int = 42
     eta: float = 1.0
