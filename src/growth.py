@@ -13,9 +13,31 @@ def get_front(channel):
 
     return front
 
-def get_growth_probabilities(E, front, eta):
+def get_growth_probabilities(
+    E,
+    strength,
+    front,
+    eta,
+    mean_breakdown_field,
+):
     field_values = E[front]
-    weights = field_values ** eta
+    strength_values = strength[front]
+
+    threshold_values = (
+        mean_breakdown_field
+        * strength_values
+    )
+
+    driving = np.maximum(
+        field_values / threshold_values - 1.0,
+        0.0,
+    )
+
+    weights = driving ** eta
+
+    if np.sum(weights) == 0:
+        return None
+
     probabilities = weights / np.sum(weights)
 
     return probabilities
@@ -25,19 +47,26 @@ def choose_growth_cell(candidates, probabilities, rng):
 
     return candidates[index]
 
-def growth_step(field, eta, rng):
+def growth_step(field, strength, eta, mean_breakdown_field, rng):
     field.apply_boundary_conditions()
-    field.solve_laplace()
+    field.solve_laplace_sor_numba()
     Ex, Ey, E = field.electric_field()
-    front = get_front(field.channel)
+    conductor = field.needle | field.channel
+    front = get_front(conductor)
     candidates = np.argwhere(front)
     if len(candidates) == 0:
         return None
     probabilities = get_growth_probabilities(
         E,
+        strength,
         front,
-        eta
+        eta,
+        mean_breakdown_field
     )
+
+    if probabilities is None:
+        return None
+
     next_cell = choose_growth_cell(
         candidates,
         probabilities,
