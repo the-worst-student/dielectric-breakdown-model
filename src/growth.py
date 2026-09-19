@@ -33,11 +33,13 @@ def get_growth_probabilities(
         0.0,
     )
 
-    weights = driving ** eta
+    active = driving > 0.0
 
-    if np.sum(weights) == 0:
+    if not np.any(active):
         return None
 
+    weights = np.zeros_like(driving)
+    weights[active] = driving[active] ** eta
     probabilities = weights / np.sum(weights)
 
     return probabilities

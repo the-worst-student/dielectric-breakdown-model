@@ -29,23 +29,11 @@ def run_simulation(config):
         )
 
         if cell is None:
-            return {
-                "status": "arrested",
-                "steps": len(history),
-                "max_y": max([p[0] for p in history], default=None),
-            }
+            return field, history, False
 
         history.append(tuple(map(int, cell)))
 
         if reached_top_electrode(field.channel):
-            return {
-                "status": "breakdown",
-                "steps": len(history),
-                "max_y": max([p[0] for p in history], default=None),
-            }
+            return field, history, True
 
-    return {
-        "status": "max_steps",
-        "steps": len(history),
-        "max_y": max([p[0] for p in history], default=None),
-    }
+    return field, history, False
