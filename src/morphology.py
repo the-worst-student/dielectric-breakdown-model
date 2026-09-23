@@ -86,4 +86,158 @@ def compute_basic_morphology(channel, history, weak_path_mask) -> dict:
         "mean_vertical_speed": mean_vertical_speed,
     }
 
+def compute_y_metrics(
+    channel,
+    y_masks,
+):
+    tree_mask = np.asarray(
+        channel,
+        dtype=bool,
+    )
 
+    if tree_mask.ndim != 2:
+        raise ValueError(
+            "channel должен быть двумерным массивом"
+        )
+
+    required_masks = (
+        "trunk",
+        "left",
+        "right",
+    )
+
+    masks = {}
+
+    for name in required_masks:
+        if name not in y_masks:
+            raise ValueError(
+                f"В y_masks отсутствует маска {name!r}"
+            )
+
+        mask = np.asarray(
+            y_masks[name],
+            dtype=bool,
+        )
+
+        if mask.shape != tree_mask.shape:
+            raise ValueError(
+                f"Размер маски {name!r} "
+                "не совпадает с размером дерева"
+            )
+
+        masks[name] = mask
+
+    trunk_mask = masks["trunk"]
+    left_mask = masks["left"]
+    right_mask = masks["right"]
+
+    branch_overlap = (
+        left_mask
+        & right_mask
+    )
+
+    trunk_and_junction = (
+        trunk_mask
+        | branch_overlap
+    )
+
+    left_only = (
+        left_mask
+        & ~trunk_and_junction
+    )
+
+    right_only = (
+        right_mask
+        & ~trunk_and_junction
+    )
+
+    full_y_mask = (
+        trunk_and_junction
+        | left_only
+        | right_only
+    )
+
+    tree_cells = int(
+        np.count_nonzero(tree_mask)
+    )
+
+    trunk_cells = int(
+        np.count_nonzero(
+            tree_mask
+            & trunk_and_junction
+        )
+    )
+
+    left_cells = int(
+        np.count_nonzero(
+            tree_mask
+            & left_only
+        )
+    )
+
+    right_cells = int(
+        np.count_nonzero(
+            tree_mask
+            & right_only
+        )
+    )
+
+    y_cells = int(
+        np.count_nonzero(
+            tree_mask
+            & full_y_mask
+        )
+    )
+
+    outside_y_cells = (
+        tree_cells
+        - y_cells
+    )
+
+    branch_cells = (
+        left_cells
+        + right_cells
+    )
+
+    if tree_cells > 0:
+        y_fraction = (
+            y_cells
+            / tree_cells
+        )
+    else:
+        y_fraction = np.nan
+
+    if branch_cells > 0:
+        left_branch_fraction = (
+            left_cells
+            / branch_cells
+        )
+
+        right_branch_fraction = (
+            right_cells
+            / branch_cells
+        )
+
+        branch_preference = (
+            left_cells
+            - right_cells
+        ) / branch_cells
+    else:
+        left_branch_fraction = np.nan
+        right_branch_fraction = np.nan
+        branch_preference = np.nan
+
+    return {
+        "tree_cells": tree_cells,
+        "trunk_cells": trunk_cells,
+        "left_cells": left_cells,
+        "right_cells": right_cells,
+        "branch_cells": branch_cells,
+        "y_cells": y_cells,
+        "outside_y_cells": outside_y_cells,
+        "y_fraction": y_fraction,
+        "left_branch_fraction": left_branch_fraction,
+        "right_branch_fraction": right_branch_fraction,
+        "branch_preference": branch_preference,
+        "reached_fork": branch_cells > 0,
+    }
