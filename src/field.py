@@ -1,7 +1,7 @@
 import numpy as np
 
 from .config import SimulationConfig
-from src.solver_numba import solve_laplace_sor_numba as solve_laplace_sor_numba_kernel
+from .solver_numba import solve_laplace_sor_numba as solve_laplace_sor_numba_kernel
 
 class ElectricField:
     def __init__(self, config: SimulationConfig):
@@ -31,14 +31,16 @@ class ElectricField:
 
         dx = config.lx / (config.nx - 1)
         dy = config.ly / (config.ny - 1)
-        needle_length_cells = max(1, int(round(config.needle_length / dy)))
-        needle_width_cells = max(1, int(round(config.needle_width / dx)))
 
-        x_center = config.nx // 2
-        half_width = needle_width_cells // 2
-        x_start = x_center - half_width
-        x_end = x_center + half_width + 1
-        self.needle[0:needle_length_cells + 1, x_start:x_end] = True
+        if config.needle_length > 0.0 and config.needle_width > 0.0:
+            needle_length_cells = max(1, int(round(config.needle_length / dy)))
+            needle_width_cells = max(1, int(round(config.needle_width / dx)))
+
+            x_center = config.nx // 2
+            half_width = needle_width_cells // 2
+            x_start = x_center - half_width
+            x_end = x_center + half_width + 1
+            self.needle[0:needle_length_cells + 1, x_start:x_end] = True
 
 
         # seed_x = config.nx // 2

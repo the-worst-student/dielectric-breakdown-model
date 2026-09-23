@@ -2,3 +2,7 @@ numpy
 matplotlib
 scipy
 jupyter
+pandas
+numba
+joblib
+tqdm

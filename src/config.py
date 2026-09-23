@@ -1,5 +1,16 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
+@dataclass(frozen=True)
+class WeakPathConfig:
+    kind: str = "none"
+    width: float = 0.05
+    factor: float = 0.6
+    start: tuple[float, float] = (0.5, 0.1)
+    end: tuple[float, float] = (0.5, 1.0)
+
+    branch_point = (0.5, 0.5)
+    left_factor = 0.6
+    right_factor = 0.6
 
 @dataclass
 class SimulationConfig:
@@ -21,3 +32,4 @@ class SimulationConfig:
     disorder_seed: int = 123
     needle_length: float = 0.1
     needle_width: float = 0.02
+    weak_path: WeakPathConfig = field(default_factory=WeakPathConfig)
