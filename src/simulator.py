@@ -3,17 +3,26 @@ import numpy as np
 from .field import ElectricField
 from .growth import growth_step, reached_top_electrode
 from .disorder import generate_breakdown_strength
-
+from .defects import build_weak_path
 
 def run_simulation(config):
     field = ElectricField(config)
 
-    strength = generate_breakdown_strength(
+    random_strength = generate_breakdown_strength(
         ny=config.ny,
         nx=config.nx,
         correlation_length=config.correlation_length,
         weibull_shape=config.weibull_shape,
         seed=config.disorder_seed,
+    )
+
+    weak_path_factor, weak_path_mask = build_weak_path(
+        config
+    )
+
+    strength = (
+            random_strength
+            * weak_path_factor
     )
 
     rng = np.random.default_rng(config.random_seed)
