@@ -10,6 +10,7 @@ env/
 # PyCharm
 .idea/
 
+catboost_info/
 # Jupyter
 .ipynb_checkpoints/
 
