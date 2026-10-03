@@ -13,7 +13,7 @@ env/
 catboost_info/
 # Jupyter
 .ipynb_checkpoints/
-
+/results/
 # Data / datasets
 data/
 *.zip
