@@ -310,21 +310,6 @@ Source and documentation layout; ignored datasets, checkpoints, and result direc
 | [17_morphology_dataset.ipynb](notebooks/17_morphology_dataset.ipynb) | Morphology extraction and inverse dataset construction |
 | [18_inverse_ml.ipynb](notebooks/18_inverse_ml.ipynb) | Feature-based inverse regression and Random Forest selection |
 | [19_cnn_inverse.ipynb](notebooks/19_cnn_inverse.ipynb) | Residual CNN training and inverse-model comparison |
-
-## Next steps
-
-The next phase connects the observed limitations to targeted experiments:
-
-| Direction | Scientific question | Proposed evaluation |
-|---|---|---|
-| Repeated-seed training | Are CNN–forest differences stable across training randomness? | Multiple CNN runs and matched comparison protocols |
-| Hybrid representations | Do engineered descriptors add value beyond the CNN embedding? | CNN-only, morphology-only, and combined-input ablations |
-| Uncertainty and identifiability | Which parameter combinations remain ambiguous? | Prediction-interval calibration and analysis of similar-morphology cases |
-| Additional observations | Can initiation or time-resolved geometry improve E_bd0 recovery? | Compare final-mask inputs with enriched observations |
-| Experimental validation | Which simulation assumptions survive real-image comparison? | Controlled dielectric experiments and a separate domain-transfer assessment |
-
-These are planned extensions, not completed results. A new locked test set is needed for confirmatory evaluation after further development.
-
 ---
 
 <p align="center"><strong>Physics generates the observations. Statistics tests the effects. Machine learning probes what the morphology retains.</strong></p>
