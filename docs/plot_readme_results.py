@@ -44,56 +44,6 @@ fig.tight_layout()
 fig.savefig(IMAGES / 'inverse_test_r2.png', dpi=200, bbox_inches='tight')
 plt.close(fig)
 
-fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.5), gridspec_kw={'width_ratios': [1.15, 1]})
-ax = axes[0]
-names = list(uncertainty)
-values = [uncertainty[n][0] for n in names]
-y = np.arange(4)
-ax.barh(y, values, color=['#78a9c8', '#256a9e', '#9bbdb1', '#25806b'], height=.6)
-ax.set_yticks(y, ['Individual', 'Individual\ncalibrated', 'Constant', 'Constant\ncalibrated'])
-ax.invert_yaxis()
-ax.set_xlim(0, 5.1)
-for i, value in enumerate(values):
-    ax.text(value + .06, i, f'{value:.4f}', va='center', fontsize=10)
-ax.set_xlabel('Joint test NLL (lower is better)')
-ax.set_title('Gaussian uncertainty comparison', pad=14)
-ax.grid(axis='x', alpha=.18)
-ax.set_axisbelow(True)
-ax = axes[1]
-ax.axvline(95, color='#667085', linestyle=':', label='Nominal 95%')
-ax.plot(np.array(uncertainty['Individual calibrated'][1])*100, y-.10, 'o', color='#256a9e', label='Individual calibrated', markersize=7)
-ax.plot(np.array(uncertainty['Constant calibrated'][1])*100, y+.10, 's', color='#25806b', label='Constant calibrated', markersize=6)
-ax.set_yticks(y, labels, fontsize=13)
-ax.set_ylim(3.5, -.5)
-ax.set_xlim(88, 100)
-ax.set_xlabel('Empirical coverage (%)')
-ax.set_title('Calibrated 95% intervals', pad=14)
-ax.grid(axis='x', alpha=.18)
-ax.legend(loc='lower left', fontsize=8, frameon=True)
-fig.tight_layout(w_pad=2)
-fig.savefig(IMAGES / 'gaussian_test_uncertainty.png', dpi=200, bbox_inches='tight')
-plt.close(fig)
-
-fig, ax = plt.subplots(figsize=(10.5, 4.6))
-styles = [('Individual', '#78a9c8', '--', 'o'), ('Individual calibrated', '#256a9e', '-', 'o'),
-          ('Constant', '#9bbdb1', '--', 's'), ('Constant calibrated', '#25806b', '-', 's')]
-offsets = [-.18, -.06, .06, .18]
-for offset, (name, color, ls, marker) in zip(offsets, styles):
-    ax.scatter(x+offset, np.array(uncertainty[name][1])*100, color=color, marker=marker, s=65, label=name, zorder=4)
-for idx in range(4):
-    for a,b,c in [(0,1,'#256a9e'), (2,3,'#25806b')]:
-        ax.plot([idx+offsets[a], idx+offsets[b]], [uncertainty[styles[a][0]][1][idx]*100, uncertainty[styles[b][0]][1][idx]*100], color=c, alpha=.5)
-ax.axhline(95, color='#667085', linestyle=':', label='Nominal 95%')
-ax.set_xticks(x, labels, fontsize=14)
-ax.set_ylim(82, 100)
-ax.set_ylabel('Empirical test coverage (%)')
-ax.set_title('Validation calibration evaluated on test', fontsize=15, pad=40)
-ax.legend(loc='lower center', bbox_to_anchor=(.5, 1.01), ncol=3, frameon=False, fontsize=9)
-ax.grid(axis='y', alpha=.18)
-fig.tight_layout()
-fig.savefig(IMAGES / 'gaussian_test_coverage.png', dpi=200, bbox_inches='tight')
-plt.close(fig)
-
 with (ROOT/'docs'/'inverse_test_summary.csv').open('w', newline='') as f:
     writer = csv.writer(f)
     writer.writerow(['model','target','mae','r2'])
@@ -104,4 +54,4 @@ with (ROOT/'docs'/'gaussian_test_summary.csv').open('w', newline='') as f:
     writer.writerow(['model','target','joint_test_nll','coverage95','mean_width95'])
     for name,(nll,coverage,widths) in uncertainty.items():
         for target,c,w in zip(targets,coverage,widths): writer.writerow([name,target,nll,c,w])
-print('Created 3 figures and 2 metric tables from rounded notebook outputs.')
+print('Created 1 figure and 2 metric tables from rounded notebook outputs.')

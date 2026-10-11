@@ -2,13 +2,30 @@
 
 # Dielectric Breakdown Model
 
+![Technology stack: Python, NumPy, SciPy, Numba, Joblib, PyTorch, CUDA, scikit-learn and Jupyter](docs/images/technology_stack.svg)
+
 **A 2D simulator of electrical-tree growth in heterogeneous dielectrics, with statistical experiments and inverse parameter estimation.**
 
 The project asks how much information about growth and material disorder can be recovered from the final channel geometry. It connects electrostatic simulation, morphology analysis, machine learning, and prediction uncertainty.
 
 **Current findings:** η is recovered well; the threshold scale and correlation length remain difficult. A deeper residual hybrid model gives no general improvement. A Gaussian head adds useful, empirically tested uncertainty intervals.
 
-[Physics](#physical-model) · [Experiments](#experiments-and-forward-learning) · [Inverse models](#inverse-models) · [Test results](#test-results) · [Gaussian inversion](#gaussian-probabilistic-inversion) · [Repository](#repository)
+[Technology stack](#technology-stack) · [Physics](#physical-model) · [Experiments](#experiments-and-forward-learning) · [Inverse models](#inverse-models) · [Test results](#test-results) · [Gaussian inversion](#gaussian-probabilistic-inversion) · [Repository](#repository)
+
+## Technology stack
+
+| Layer | Libraries & technologies | Role in the project |
+|---|---|---|
+| Numerical simulation | **Python · NumPy · SciPy** | Grid fields, correlated material disorder, connected components and statistical analysis |
+| CPU acceleration | **Numba · Joblib** | JIT-compiled SOR electrostatic solver and parallel Monte Carlo runs |
+| Data & preprocessing | **pandas · scikit-learn** | Experiment tables, feature preprocessing, grouped evaluation and regression/classification baselines |
+| Tabular learning | **scikit-learn · CatBoost** | Logistic regression, Random Forest and gradient boosting for simulation outcomes |
+| Deep learning | **PyTorch · CUDA** | Residual CNNs, mask + morphology fusion, Gaussian likelihood training and GPU execution when available |
+| Experiments & plots | **Jupyter · Matplotlib · tqdm** | Reproducible notebook workflows, diagnostic figures and training progress |
+
+**Methods:** Laplace/SOR simulation · Sobol sampling · residual learning · Gaussian NLL · validation calibration · paired cluster bootstrap.
+
+The simulator uses CPU acceleration; neural training can run on CUDA in Colab or locally. Fixed seeds, grouped splits, saved preprocessing and model checkpoints connect the experiments to evaluation.
 
 ## Physical model
 
@@ -131,7 +148,9 @@ One sigma multiplier per target was fitted by minimizing NLL on validation. The 
 
 **Result:** individual uncertainty remains useful after calibration, reducing test NLL by **0.2634** relative to the calibrated constant baseline. NLL is measured in normalized target coordinates. Its difference has not been tested for statistical significance.
 
-![Gaussian uncertainty: test NLL and calibrated interval coverage](docs/images/gaussian_test_uncertainty.png)
+![Test calibration curves for eta, threshold scale, correlation length and Weibull shape](docs/images/gaussian_test_calibration.png)
+
+*Nominal coverage on the horizontal axis, observed test coverage on the vertical axis. The dotted diagonal is ideal calibration; curves below it indicate undercoverage. Orange: individual variance before calibration; blue: after calibration; green: calibrated constant variance. These curves assess multiple interval levels, rather than only the 95% level.*
 
 ### Accuracy and calibrated 95% intervals
 
@@ -144,9 +163,15 @@ One sigma multiplier per target was fitted by minimizing NLL on validation. The 
 
 Coverage is the fraction of true values inside their predicted intervals. It must be read together with interval width and mean-prediction error: wide intervals can cover truth despite poor point recovery.
 
-![Effect of validation calibration on test interval coverage](docs/images/gaussian_test_coverage.png)
-
 Calibration moves η and k close to the nominal 95% coverage; ℓc retains undercoverage. Calibration changes interval widths, not mean predictions.
+
+### Three test masks: parameter recovery and intervals
+
+![Three test masks with true parameters, Gaussian means and calibrated 95 percent intervals](docs/images/gaussian_test_examples.png)
+
+*Each row starts with an observed channel mask. Blue points and bars show predicted means and calibrated marginal 95% intervals; black crosses mark true parameters. The model recovers parameters from masks; it does not generate or reconstruct the masks.*
+
+The third example exposes a failure: the true correlation length is **13**, while the predicted mean is **3.60** and the interval is **[−1.69, 8.88]**. Wide intervals in the other examples also show why coverage alone is insufficient. These three cases illustrate individual predictions; the tables above evaluate all **1,933 test masks**.
 
 **Interpretation:** the Gaussian head adds tested uncertainty estimates, with no general breakthrough in point accuracy. η is recovered well, k moderately, and the threshold scale and correlation length remain difficult. Poor recovery does not by itself prove fundamental physical non-identifiability.
 
@@ -160,13 +185,11 @@ Calibration moves η and k close to the nominal 95% coverage; ℓc retains under
 
 ## Repository
 
-**Stack:** Python · NumPy/SciPy · Numba/Joblib · pandas · scikit-learn/CatBoost · PyTorch · Matplotlib · Jupyter.
-
 | Location | Contents |
 |---|---|
 | `src/` | Electrostatics, disorder, growth, morphology, and inverse-model modules |
 | `notebooks/` | Physical experiments, statistics, datasets, training, and evaluation |
-| `docs/images/` | README figures |
+| [`docs/`](docs/README.md) | Figure provenance, metric tables and plotting scripts |
 | `results/` | Locally generated metrics, predictions, and checkpoints |
 | `requirements.txt` | Dependencies |
 
@@ -183,4 +206,4 @@ Calibration moves η and k close to the nominal 95% coverage; ℓc retains under
 
 Datasets, masks, and trained weights are generated locally and may be excluded from version control. The Gaussian inference checkpoint contains CNN/head weights, target normalization, and sigma calibration coefficients.
 
-
+The R² comparison and example intervals reproduce saved, rounded notebook outputs; calibration curves and mask displays come from the completed notebook figures. See [figure sources and reproduction](docs/README.md). No training or evaluation was rerun for this README.
